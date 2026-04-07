@@ -16,7 +16,7 @@ jobs:
 
     - name: Build the image
       run: |
-        docker build -t hospital-app:v1.0.0
+        docker build -t hospital-app:v1.0.0 .
 
     - name: Scan the image
       uses: aquasecurity/trivy-action@v0.20.0
