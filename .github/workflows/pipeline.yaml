@@ -33,4 +33,6 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Push to Docker Hub
-      run: docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
+      run: |
+        docker tag hospital-app:v1.0.0 \
+        ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
