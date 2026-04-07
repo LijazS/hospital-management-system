@@ -1,0 +1,36 @@
+name: Hospital image build & scan Flow
+
+on:
+  push:
+    branches:
+    - 'deploying'
+
+jobs:
+  build-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build the image
+      run: |
+        docker build -t hospital-app:v1.0.0
+
+    - name: Scan the image
+      uses: aquasecurity/trivy-action@v0.20.0
+      with:
+        image-ref: hospital-app:v1.0.0
+        format: table
+        exit-code: 0
+        severity: HIGH.CRITICAL
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_NAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push to Docker Hub
+      run: docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
