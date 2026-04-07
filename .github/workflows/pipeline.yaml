@@ -35,4 +35,4 @@ jobs:
     - name: Push to Docker Hub
       run: |
         docker tag hospital-app:v1.0.0 \
-        ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
+        docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
