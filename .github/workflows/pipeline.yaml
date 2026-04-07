@@ -32,7 +32,10 @@ jobs:
         username: ${{ secrets.DOCKER_NAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Push to Docker Hub
+    - name: Tag image for Docker Hub
       run: |
         docker tag hospital-app:v1.0.0 \
-        docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
+        ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
+
+    - name: push to Docker Hub
+      run: docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
