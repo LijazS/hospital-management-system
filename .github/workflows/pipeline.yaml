@@ -14,7 +14,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Sacn using Sonar Cube
+    - name: Scan using Sonar Cube
       uses: SonarSource/sonarqube-scan-action@v7.1.0
       with:
       args: >
