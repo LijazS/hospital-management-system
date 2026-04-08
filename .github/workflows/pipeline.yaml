@@ -16,6 +16,10 @@ jobs:
 
     - name: Sacn using Sonar Cube
       uses: SonarSource/sonarqube-scan-action@v7.1.0
+      with:
+      args: >
+        -Dsonar.organization=${{ secrets.SONAR_ORG }}
+        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
