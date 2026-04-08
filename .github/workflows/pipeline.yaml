@@ -14,6 +14,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Sacn using Sonar Cube
+      uses: SonarSource/sonarqube-scan-action@v7.1.0
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: Build the image
       run: |
         docker build -t hospital-app:v1.0.0 .
