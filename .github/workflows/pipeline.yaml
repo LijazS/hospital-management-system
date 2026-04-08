@@ -23,11 +23,11 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-    # - name: Run Snyk to check for vulnerabilities
-    #   uses: snyk/actions/node@master
-    #   working-directory: backend
-    #   env:
-    #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/node@master
+      working-directory: backend
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     - name: Build the image
       run: |
