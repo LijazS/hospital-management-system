@@ -18,8 +18,10 @@ jobs:
       uses: SonarSource/sonarqube-scan-action@v7.1.0
       with:
         args: >
-          -Dsonar.organization=${{ secrets.SONAR_ORG }}
+          -Dsonar.organization=${{ secrets.SONAR_TOKEN }}
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          -Dsonar.projectKey=${{ secrets.SONAR_HOST_URL }}
+          
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
