@@ -16,14 +16,9 @@ jobs:
 
     - name: Scan using Sonar Cube
       uses: SonarSource/sonarqube-scan-action@v7.1.0
-      with:
-        args: >
-          -Dsonar.organization=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.projectKey=${{ secrets.SONAR_HOST_URL }}
-          
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
     # - name: Run Snyk to check for vulnerabilities
     #   uses: snyk/actions/node@master
