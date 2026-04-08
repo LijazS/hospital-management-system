@@ -16,6 +16,9 @@ jobs:
 
     - name: Scan using Sonar Cube
       uses: SonarSource/sonarqube-scan-action@v7.1.0
+      with:
+        args: >
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
