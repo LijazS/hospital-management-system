@@ -113,13 +113,13 @@ jobs:
             View Report
           </a>
 
-    - name: Slack Notification 
-      uses: byouscan/gitactions-slack-notification@3.0.0
-      env:
-        SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-        SLACK_CHANNEL: 'opslora-code-quality'
-        SLACK_MESSAGE: "Build: ${{ job.status }} | View workflow artifacts: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        SLACK_TITLE: 'SonarQube Notification'
+    - name: Post to Slack
+      uses: slackapi/slack-github-action@v3.0.1
+      with:
+        webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+        webhook-type: incoming-webhook
+        payload: |
+          text: "SonarQube report is ready: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
 
     - name: Fail pipeline at the end if Quality Gate failed     # Stops the pipeline if QG failed
