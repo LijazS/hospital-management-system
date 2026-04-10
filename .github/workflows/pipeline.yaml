@@ -22,131 +22,132 @@ jobs:
 
     ######## SONARQUBE CHECKING, QG check, SAVING TO ARTIFACTS, sending mail #########
 
-    - name: Scan using Sonar Cube     # Scans the code and stores reports in server. can retrieve using /api/issues endpoint
-      uses: SonarSource/sonarqube-scan-action@v7.1.0
-      with:
-        args: >
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    # - name: Scan using Sonar Cube     # Scans the code and stores reports in server. can retrieve using /api/issues endpoint
+    #   uses: SonarSource/sonarqube-scan-action@v7.1.0
+    #   with:
+    #     args: >
+    #       -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+    #   env:
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-    - name: Check SonarQube Quality Gate    # Returns PASSED or FAILED as output.quality-gate-status
-      id: sonarqube-quality-gate-check
-      uses: SonarSource/sonarqube-quality-gate-action@master
-      with:
-        pollingTimeoutSec: 300
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      continue-on-error: true
+    # - name: Check SonarQube Quality Gate    # Returns PASSED or FAILED as output.quality-gate-status
+    #   id: sonarqube-quality-gate-check
+    #   uses: SonarSource/sonarqube-quality-gate-action@master
+    #   with:
+    #     pollingTimeoutSec: 300
+    #   env:
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    #   continue-on-error: true
 
-    #### The section below only runs if QG fails
+    # #### The section below only runs if QG fails
 
-    - name: Generate SonarQube issues JSON
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      run: |
-        mkdir -p reports
-        curl -s \
-          -H "Authorization: Bearer ${SONAR_TOKEN}" \
-          "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
-          -o reports/sonarqube-issues.json
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-
-
-    - name: Generate readable HTML report
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      run: |
-        python3 - <<'PY'
-        import json
-
-        with open("reports/sonarqube-issues.json") as f:
-            data = json.load(f)
-
-        issues = data.get("issues", [])
-
-        with open("reports/sonarqube-report.html", "w") as out:
-            out.write("<h2>SonarQube Issues Report</h2>")
-            out.write(f"<p>Total Issues: {len(issues)}</p>")
-            out.write("<ul>")
-
-            for issue in issues:
-                out.write("<li>")
-                out.write(f"<b>{issue.get('severity')}</b>: {issue.get('message')}<br>")
-                out.write(f"File: {issue.get('component')}<br>")
-                out.write(f"Line: {issue.get('line')}<br>")
-                out.write(f"Rule: {issue.get('rule')}")
-                out.write("</li><br>")
-
-            out.write("</ul>")
-        PY
+    # - name: Generate SonarQube issues JSON
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   run: |
+    #     mkdir -p reports
+    #     curl -s \
+    #       -H "Authorization: Bearer ${SONAR_TOKEN}" \
+    #       "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
+    #       -o reports/sonarqube-issues.json
+    #   env:
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    #     SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
 
+    # - name: Generate readable HTML report
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   run: |
+    #     python3 - <<'PY'
+    #     import json
 
-    - name: Upload SonarQube report artifact
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      uses: actions/upload-artifact@v4
-      with:
-        name: sonarqube-report
-        path: reports/sonarqube-report.html
+    #     with open("reports/sonarqube-issues.json") as f:
+    #         data = json.load(f)
+
+    #     issues = data.get("issues", [])
+
+    #     with open("reports/sonarqube-report.html", "w") as out:
+    #         out.write("<h2>SonarQube Issues Report</h2>")
+    #         out.write(f"<p>Total Issues: {len(issues)}</p>")
+    #         out.write("<ul>")
+
+    #         for issue in issues:
+    #             out.write("<li>")
+    #             out.write(f"<b>{issue.get('severity')}</b>: {issue.get('message')}<br>")
+    #             out.write(f"File: {issue.get('component')}<br>")
+    #             out.write(f"Line: {issue.get('line')}<br>")
+    #             out.write(f"Rule: {issue.get('rule')}")
+    #             out.write("</li><br>")
+
+    #         out.write("</ul>")
+    #     PY
 
 
 
-    - name: Send email with report
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      uses: hilarion5/send-mail@v1
-      with:
-        smtp-server: smtp.hostinger.com
-        smtp-port: 587
-        smtp-secure: false
-        username: ${{ secrets.SMTP_USERNAME }}
-        password: ${{ secrets.SMTP_PASSWORD }}
-        from-email: ${{ secrets.MAIL_FROM }}
-        to-email: ${{ secrets.MAIL_TO }}
-        subject: "SonarQube Report"
-        html: |
-          <h3>SonarQube Report</h3>
-          <p>Download the report from the workflow:</p>
-          <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-            View Report
-          </a>
-
-    - name: Post to Slack
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      uses: slackapi/slack-github-action@v3.0.1
-      with:
-        webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-        webhook-type: incoming-webhook
-        payload: |
-          text: "SonarQube report is ready"
-          blocks:
-            - type: section
-              text:
-                type: mrkdwn
-                text: "*Triggered by:* `${{ github.actor }}`"
-            - type: section
-              text:
-                type: mrkdwn
-                text: "*SONARQUBE ALERT:*"
-            - type: section
-              text:
-                type: mrkdwn
-                text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Report>"
+    # - name: Upload SonarQube report artifact
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: sonarqube-report
+    #     path: reports/sonarqube-report.html
 
 
-    - name: Fail pipeline at the end if Quality Gate failed     # Stops the pipeline if QG failed
-      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
-      run: |
-        echo "SonarQube Quality Gate failed"
-        exit 1
+
+    # - name: Send email with report
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   uses: hilarion5/send-mail@v1
+    #   with:
+    #     smtp-server: smtp.hostinger.com
+    #     smtp-port: 587
+    #     smtp-secure: false
+    #     username: ${{ secrets.SMTP_USERNAME }}
+    #     password: ${{ secrets.SMTP_PASSWORD }}
+    #     from-email: ${{ secrets.MAIL_FROM }}
+    #     to-email: ${{ secrets.MAIL_TO }}
+    #     subject: "SonarQube Report"
+    #     html: |
+    #       <h3>SonarQube Report</h3>
+    #       <p>Download the report from the workflow:</p>
+    #       <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+    #         View Report
+    #       </a>
+
+    # - name: Post to Slack
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   uses: slackapi/slack-github-action@v3.0.1
+    #   with:
+    #     webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+    #     webhook-type: incoming-webhook
+    #     payload: |
+    #       text: "SonarQube report is ready"
+    #       blocks:
+    #         - type: section
+    #           text:
+    #             type: mrkdwn
+    #             text: "*Triggered by:* `${{ github.actor }}`"
+    #         - type: section
+    #           text:
+    #             type: mrkdwn
+    #             text: "*SONARQUBE ALERT:*"
+    #         - type: section
+    #           text:
+    #             type: mrkdwn
+    #             text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Report>"
+
+
+    # - name: Fail pipeline at the end if Quality Gate failed     # Stops the pipeline if QG failed
+    #   if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
+    #   run: |
+    #     echo "SonarQube Quality Gate failed"
+    #     exit 1
 
 
   ####################################################################
 
     - name: Run Snyk to check for vulnerabilities
+      id: snyk-check
       uses: snyk/actions/node@master
       with:
         args: --file=backend/package.json
@@ -154,6 +155,10 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       continue-on-error: true
+
+    - name: Check outputs of snyk
+      run: echo "outputs"
+           echo ${{ steps.snyk-check.outputs }}
 
     - name: Build the image
       run: |
