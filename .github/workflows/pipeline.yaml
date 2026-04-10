@@ -35,22 +35,19 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 
-    - name: Create SonarQube summary report
+    - name: Dump raw SonarQube issues JSON
       if: always()
       run: |
         mkdir -p reports
-        {
-          echo "SonarQube Quality Gate Report"
-          echo "============================"
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "Quality Gate Status: ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
-          echo "Sonar Host: ${{ secrets.SONAR_HOST_URL }}"
-          echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
-        } > reports/sonarqube-report.txt
+        curl -s \
+          -H "Authorization: Bearer ${SONAR_TOKEN}" \
+          "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
+          -o reports/sonarqube-issues.json
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+
 
     - name: Upload SonarQube report artifact
       if: always()
