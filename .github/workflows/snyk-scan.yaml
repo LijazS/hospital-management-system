@@ -2,9 +2,15 @@ name: Reusable Dependency Scan
 
 on:
   workflow_call:
+    outputs:
+      snyk-status:
+        description: "Snyk output"
+        value: ${{ jobs.snyk-scan.outputs.snyk_status }}
 
 jobs:
   snyk-scan:
+    outputs:
+      snyk_status: ${{ steps.snyk-check.outcome }}
     runs-on: ubuntu-latest
 
     steps:
