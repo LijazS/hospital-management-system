@@ -35,18 +35,29 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 
-    - name: Dump raw SonarQube issues JSON
+    - name: Generate SonarQube issues JSON
       if: always()
       run: |
-        mkdir -p reports
-        curl -s \
-          -H "Authorization: Bearer ${SONAR_TOKEN}" \
-          "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
-          -o reports/sonarqube-issues.json
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          python3 - <<'PY'
+          import json
+
+          with open("reports/sonarqube-issues.json") as f:
+              data = json.load(f)
+
+          issues = data.get("issues", [])
+
+          with open("reports/sonarqube-issues.txt", "w") as out:
+              out.write("SONARQUBE ISSUES REPORT\n")
+              out.write("="*40 + "\n\n")
+              out.write(f"Total Issues: {len(issues)}\n\n")
+
+              for i, issue in enumerate(issues, 1):
+                  out.write(f"{i}. [{issue.get('severity')}] {issue.get('message')}\n")
+                  out.write(f"   File: {issue.get('component')}\n")
+                  out.write(f"   Line: {issue.get('line')}\n")
+                  out.write(f"   Rule: {issue.get('rule')}\n")
+                  out.write("-"*40 + "\n")
+          PY
 
 
     - name: Upload SonarQube report artifact
@@ -54,7 +65,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sonarqube-report
-        path: reports/sonarqube-issues.json
+        path: reports/sonarqube-issues.txt
 
 
   ####################################################################
