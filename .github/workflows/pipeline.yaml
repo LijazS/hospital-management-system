@@ -3,7 +3,7 @@ name: Hospital image build & scan Flow
 on:
   push:
     branches:
-    - 'deploying'
+      - deploying
 
 concurrency:
   group: hospital-ci-${{ github.ref }}
@@ -13,47 +13,17 @@ permissions:
   contents: read
 
 jobs:
-
-
-    ######## SONARQUBE CHECKING, QG check, SAVING TO ARTIFACTS, sending mail #########
-
   sonar-scan:
     uses: ./.github/workflows/sonar-scan.yaml
     secrets: inherit
-
-  ######################      SNYK SACN      ###########################
 
   dependency-scan:
     uses: ./.github/workflows/snyk-scan.yaml
     secrets: inherit
 
-    ##################      IF BOTH GATES ARE PASSED   ####################
-
-
   image-build-scan:
-    uses: ./.github/workflows/docker-scan.yaml
     needs:
-    - sonar-scan
-    - snyk-scan
+      - sonar-scan
+      - dependency-scan
+    uses: ./.github/workflows/docker-scan.yaml
     secrets: inherit
-
-    # - name: Build the image
-    #   run: |
-    #     docker build -t hospital-app:v1.0.0 .
-
-    # - name: Scan the image
-    #   uses: aquasecurity/trivy-action@v0.20.0
-    #   with:
-    #     image-ref: hospital-app:v1.0.0
-    #     format: table
-    #     exit-code: 0
-    #     severity: HIGH,CRITICAL
-
-
-    # - name: Tag image for Docker Hub
-    #   run: |
-    #     docker tag hospital-app:v1.0.0 \
-    #     ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
-
-    # - name: push to Docker Hub
-    #   run: docker push ${{ secrets.DOCKER_NAME }}/hospital-app:v1.0.0
