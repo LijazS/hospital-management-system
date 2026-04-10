@@ -108,7 +108,7 @@ jobs:
           </a>
 
     - name: Slack Notification 
-      uses: bryannice/gitactions-slack-notification@2.0.0
+      uses: bryannice/gitactions-slack-notification@v1.1.0
       env:
         SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
         SLACK_CHANNEL: 'opslora-code-quality'
