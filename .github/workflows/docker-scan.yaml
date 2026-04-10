@@ -2,14 +2,6 @@ name: Docker build and scan
 
 on:
   workflow_call:
-    inputs:
-      snyk_status:
-        required: true 
-        type: string
-      quality_gate_status:
-        required: true
-        type: string
-
 
 
 jobs:
