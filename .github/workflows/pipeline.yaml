@@ -23,6 +23,15 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+    - name: Check SonarQube Quality Gate
+      id: sonarqube-quality-gate-check
+      uses: SonarSource/sonarqube-quality-gate-action@master
+      with:
+        pollingTimeoutSec: 300
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
     - name: Run Snyk to check for vulnerabilities
       uses: snyk/actions/node@master
       with:
