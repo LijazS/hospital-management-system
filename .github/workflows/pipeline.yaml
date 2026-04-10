@@ -5,6 +5,13 @@ on:
     branches:
     - 'deploying'
 
+concurrency:
+  group: hospital-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
 
 
@@ -25,6 +32,9 @@ jobs:
 
   image-build-scan:
     uses: ./.github/workflows/docker-scan.yaml
+    needs:
+    - sonar-scan
+    - snyk-scan
     secrets: inherit
 
     # - name: Build the image
