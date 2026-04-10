@@ -147,18 +147,8 @@ jobs:
   ####################################################################
 
     - name: Run Snyk to check for vulnerabilities
-      id: snyk-check
-      uses: snyk/actions/node@master
-      with:
-        args: --file=backend/package.json
-              --severity-threshold=high
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      continue-on-error: true
-
-    - name: Check outputs of snyk
-      run: echo "outputs"
-           echo ${{ steps.snyk-check.outcome }}
+      uses: ./.github/workflows/snyk-scan.yaml
+      secrets: inherit
 
     - name: Build the image
       run: |

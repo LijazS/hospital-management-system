@@ -1,0 +1,28 @@
+name: Reusable Dependency Scan
+
+on:
+  workflow_call:
+
+jobs:
+  snyk-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Snyk to check for vulnerabilities
+        id: snyk-check
+        uses: snyk/actions/node@master
+        with:
+          args: --file=backend/package.json --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Show Snyk outcome
+        run: echo "Snyk outcome: ${{ steps.snyk-check.outcome }}"
+
+      - name: Fail if Snyk found blocking vulnerabilities
+        if: steps.snyk-check.outcome == 'failure'
+        run: exit 1
