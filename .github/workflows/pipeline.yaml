@@ -147,7 +147,7 @@ jobs:
   ####################################################################
 
   dependency-scan:
-    uses: ./.github/workflows/reusable/snyk-scan.yaml
+    uses: ./.github/workflows/snyk-scan.yaml
     secrets: inherit
 
     # - name: Build the image
