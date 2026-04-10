@@ -21,7 +21,9 @@ jobs:
     uses: ./.github/workflows/snyk-scan.yaml
     secrets: inherit
 
+
   image-build-scan:
+    if: needs.code-quality.outputs.quality_gate_status ==  'PASSED' && needs.dependency-scan.outputs.snyk_status == 'success'
     needs:
       - sonar-scan
       - dependency-scan
