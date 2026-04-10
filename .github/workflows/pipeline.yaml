@@ -147,7 +147,7 @@ jobs:
   ####################################################################
 
     - name: Run Snyk to check for vulnerabilities
-      uses: ./.github/workflows/snyk-scan.yaml
+      uses: ./.github/workflows/reusable/snyk-scan.yaml
       secrets: inherit
 
     - name: Build the image
