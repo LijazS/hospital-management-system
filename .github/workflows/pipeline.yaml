@@ -14,6 +14,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    ######## SONARQUBE CHECKING, QG check, SAVING TO ARTIFACTS #########
+
     - name: Scan using Sonar Cube
       uses: SonarSource/sonarqube-scan-action@v7.1.0
       with:
@@ -31,6 +33,34 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+
+    - name: Create SonarQube summary report
+      if: always()
+      run: |
+        mkdir -p reports
+        {
+          echo "SonarQube Quality Gate Report"
+          echo "============================"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "Quality Gate Status: ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
+          echo "Sonar Host: ${{ secrets.SONAR_HOST_URL }}"
+          echo "Project Key: ${{ secrets.SONAR_PROJECT_KEY }}"
+        } > reports/sonarqube-report.txt
+
+    - name: Upload SonarQube report artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sonarqube-report
+        path: reports/sonarqube-report.txt
+
+
+  ####################################################################
 
     - name: Run Snyk to check for vulnerabilities
       uses: snyk/actions/node@master
