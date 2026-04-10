@@ -94,6 +94,7 @@ jobs:
       with:
         smtp-server: smtp.hostinger.com
         smtp-port: 587
+        smtp-secure: false
         username: ${{ secrets.SMTP_USERNAME }}
         password: ${{ secrets.SMTP_PASSWORD }}
         from-email: ${{ secrets.MAIL_FROM }}
