@@ -106,7 +106,7 @@ jobs:
           <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
             View Report
           </a>
-        attachments: reports/sonarqube-report.html
+
 
     - name: Fail pipeline at the end if Quality Gate failed     # Stops the pipeline if QG failed
       if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
