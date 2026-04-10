@@ -21,7 +21,7 @@ jobs:
         continue-on-error: true
 
       - name: Show Snyk outcome
-        run: echo "Snyk outcome: ${{ steps.snyk-check.outcome }}"
+        run: echo "Snyk outcome- ${{ steps.snyk-check.outcome }}"
 
       - name: Fail if Snyk found blocking vulnerabilities
         if: steps.snyk-check.outcome == 'failure'
