@@ -38,26 +38,44 @@ jobs:
     - name: Generate SonarQube issues JSON
       if: always()
       run: |
-          python3 - <<'PY'
-          import json
+        mkdir -p reports
+        curl -s \
+          -H "Authorization: Bearer ${SONAR_TOKEN}" \
+          "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
+          -o reports/sonarqube-issues.json
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
-          with open("reports/sonarqube-issues.json") as f:
-              data = json.load(f)
 
-          issues = data.get("issues", [])
+    - name: Generate readable HTML report
+      if: always()
+      run: |
+        python3 - <<'PY'
+        import json
 
-          with open("reports/sonarqube-issues.txt", "w") as out:
-              out.write("SONARQUBE ISSUES REPORT\n")
-              out.write("="*40 + "\n\n")
-              out.write(f"Total Issues: {len(issues)}\n\n")
+        with open("reports/sonarqube-issues.json") as f:
+            data = json.load(f)
 
-              for i, issue in enumerate(issues, 1):
-                  out.write(f"{i}. [{issue.get('severity')}] {issue.get('message')}\n")
-                  out.write(f"   File: {issue.get('component')}\n")
-                  out.write(f"   Line: {issue.get('line')}\n")
-                  out.write(f"   Rule: {issue.get('rule')}\n")
-                  out.write("-"*40 + "\n")
-          PY
+        issues = data.get("issues", [])
+
+        with open("reports/sonarqube-report.html", "w") as out:
+            out.write("<h2>SonarQube Issues Report</h2>")
+            out.write(f"<p>Total Issues: {len(issues)}</p>")
+            out.write("<ul>")
+
+            for issue in issues:
+                out.write("<li>")
+                out.write(f"<b>{issue.get('severity')}</b>: {issue.get('message')}<br>")
+                out.write(f"File: {issue.get('component')}<br>")
+                out.write(f"Line: {issue.get('line')}<br>")
+                out.write(f"Rule: {issue.get('rule')}")
+                out.write("</li><br>")
+
+            out.write("</ul>")
+        PY
+
 
 
     - name: Upload SonarQube report artifact
@@ -65,7 +83,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sonarqube-report
-        path: reports/sonarqube-issues.txt
+        path: reports/sonarqube-report.html
 
 
   ####################################################################
