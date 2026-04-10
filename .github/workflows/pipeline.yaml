@@ -96,6 +96,7 @@ jobs:
 
 
     - name: Send email with report
+      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
       uses: hilarion5/send-mail@v1
       with:
         smtp-server: smtp.hostinger.com
@@ -114,6 +115,7 @@ jobs:
           </a>
 
     - name: Post to Slack
+      if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
       uses: slackapi/slack-github-action@v3.0.1
       with:
         webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
@@ -125,6 +127,10 @@ jobs:
               text:
                 type: mrkdwn
                 text: "*Triggered by:* `${{ github.actor }}`"
+            - type: section
+              text:
+                type: mrkdwn
+                text: "*SONARQUBE ALERT:*"
             - type: section
               text:
                 type: mrkdwn
