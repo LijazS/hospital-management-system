@@ -3,7 +3,7 @@ name: Reusable Dependency Scan
 on:
   workflow_call:
     outputs:
-      snyk-status:
+      snyk_status:
         description: "Snyk output"
         value: ${{ jobs.snyk-scan.outputs.snyk_status }}
 

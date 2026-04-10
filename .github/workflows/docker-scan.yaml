@@ -3,7 +3,7 @@ name: Docker build and scan
 on:
   workflow_call:
     inputs:
-      snyk-status:
+      snyk_status:
         required: true 
         type: string
       quality_gate_status:
