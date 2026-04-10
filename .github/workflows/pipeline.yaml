@@ -87,23 +87,37 @@ jobs:
         name: sonarqube-report
         path: reports/sonarqube-report.html
 
-
-
-    - name: Send email with report
-      uses: hilarion5/send-mail@v1
+    - name: Send email
+      uses: devellany/send-mailer@v1.0.2
       with:
-        smtp-server: smtp.gmail.com
-        smtp-port: 587
-        smtp-secure: true
-        username: ${{ secrets.SMTP_USERNAME }}
-        password: ${{ secrets.SMTP_PASSWORD }}
-        from-email: ${{ secrets.MAIL_FROM }}
-        to-email: ${{ secrets.MAIL_TO }}
+        host: smtp.gmail.com
+        account: ${{secrets.SMTP_USERNAME}}
+        password: ${{secrets.SMTP_PASSWORD}}
+        sender: devellany
+        from: ${{secrets.MAIL_FROM}}
+        to: lijazsalim@gmail.com
         subject: "SonarQube Report"
-        html: |
+        body: |
           <h3>SonarQube Report Attached</h3>
           <p>Check the attachment</p>
+        contentType: text/html
         attachments: reports/sonarqube-report.html
+
+    # - name: Send email with report
+    #   uses: hilarion5/send-mail@v1
+    #   with:
+    #     smtp-server: smtp.gmail.com
+    #     smtp-port: 587
+    #     smtp-secure: true
+    #     username: ${{ secrets.SMTP_USERNAME }}
+    #     password: ${{ secrets.SMTP_PASSWORD }}
+    #     from-email: ${{ secrets.MAIL_FROM }}
+    #     to-email: ${{ secrets.MAIL_TO }}
+    #     subject: "SonarQube Report"
+    #     html: |
+    #       <h3>SonarQube Report Attached</h3>
+    #       <p>Check the attachment</p>
+    #     attachments: reports/sonarqube-report.html
 
     - name: Fail pipeline at the end if Quality Gate failed     # Stops the pipeline if QG failed
       if: steps.sonarqube-quality-gate-check.outputs.quality-gate-status == 'FAILED'
