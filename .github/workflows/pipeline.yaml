@@ -83,6 +83,8 @@ jobs:
           mail_from: ${{ secrets.MAIL_FROM }}
           mail_to: ${{ needs.get-email.outputs.email }}
           slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+          sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
+          sonar_project_key: ${{ secrets.SONAR_PROJECT_KEY }}
 
       - name: Send Snyk notification
         if: ${{ needs.snyk-scan.outputs.snyk_status == 'failure' }}
