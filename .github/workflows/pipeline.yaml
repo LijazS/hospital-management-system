@@ -14,10 +14,12 @@ permissions:
 
 jobs:
   sonar-scan:
+    name: SonarQube scan
     uses: ./.github/workflows/sonar-scan.yaml
     secrets: inherit
 
-  dependency-scan:
+  snyk-scan:
+    name: Snyk Scan
     needs:
       - sonar-scan
     if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' }}
@@ -25,10 +27,11 @@ jobs:
     secrets: inherit
 
   notify:
+    name: Notification for sonar and snyk
     needs:
       - sonar-scan
-      - dependency-scan
-    if: ${{ always() && needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
+      - snyk-scan
+    if: ${{ always() && needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.snyk-scan.outputs.snyk_status == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -49,7 +52,7 @@ jobs:
           slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
 
       - name: Send Snyk notification
-        if: ${{ needs.dependency-scan.outputs.snyk_status == 'failure' }}
+        if: ${{ needs.snyk-scan.outputs.snyk_status == 'failure' }}
         uses: ./.github/actions/send-notification
         with:
           pipeline_name: ${{ github.workflow }}
@@ -65,8 +68,8 @@ jobs:
   # image-build-scan:
   #   needs:
   #     - sonar-scan
-  #     - dependency-scan
+  #     - snyk-scan
   #     - notify
-  #   if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' && needs.dependency-scan.outputs.snyk_status == 'success' }}
+  #   if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' && needs.snyk-scan.outputs.snyk_status == 'success' }}
   #   uses: ./.github/workflows/docker-scan.yaml
   #   secrets: inherit
