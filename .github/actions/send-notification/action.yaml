@@ -2,26 +2,23 @@ name: Send Notification
 description: Send email and Slack notification
 
 inputs:
-  title:
-    description: Notification title
+  pipeline_name:
     required: true
-  summary:
-    description: Notification summary
+  repository_name:
+    required: true
+  failure_reason:
+    required: true
+  author:
     required: true
   smtp_username:
-    description: SMTP username
     required: true
   smtp_password:
-    description: SMTP password
     required: true
   mail_from:
-    description: Sender email
     required: true
   mail_to:
-    description: Receiver email
     required: true
   slack_webhook:
-    description: Slack webhook URL
     required: true
 
 runs:
@@ -37,13 +34,16 @@ runs:
         password: ${{ inputs.smtp_password }}
         from-email: ${{ inputs.mail_from }}
         to-email: ${{ inputs.mail_to }}
-        subject: ${{ inputs.title }}
+        subject: "${{ inputs.pipeline_name }} - ${{ inputs.repository_name }} FAILED"
         html: |
-          <h3>${{ inputs.title }}</h3>
-          <p>${{ inputs.summary }}</p>
-          <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-            View workflow run
-          </a>
+          <h3>${{ inputs.pipeline_name }} - ${{ inputs.repository_name }}</h3>
+          <p><strong>REASON:</strong> ${{ inputs.failure_reason }}</p>
+          <p><strong>Author:</strong> ${{ inputs.author }}</p>
+          <p>
+            <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+              View workflow run
+            </a>
+          </p>
 
     - name: Post to Slack
       uses: slackapi/slack-github-action@v3.0.1
@@ -51,16 +51,20 @@ runs:
         webhook: ${{ inputs.slack_webhook }}
         webhook-type: incoming-webhook
         payload: |
-          text: "${{ inputs.title }}"
+          text: "${{ inputs.pipeline_name }} - ${{ inputs.repository_name }} FAILED"
           blocks:
             - type: section
               text:
                 type: mrkdwn
-                text: "*${{ inputs.title }}*"
+                text: "*${{ inputs.pipeline_name }} - ${{ inputs.repository_name }}*"
             - type: section
               text:
                 type: mrkdwn
-                text: "${{ inputs.summary }}"
+                text: "*REASON:* ${{ inputs.failure_reason }}"
+            - type: section
+              text:
+                type: mrkdwn
+                text: "*Author:* ${{ inputs.author }}"
             - type: section
               text:
                 type: mrkdwn
