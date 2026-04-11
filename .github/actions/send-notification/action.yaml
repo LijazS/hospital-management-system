@@ -103,39 +103,39 @@ runs:
       with:
         webhook: ${{ inputs.slack_webhook }}
         webhook-type: incoming-webhook
-      payload: |
-        text: "🚨 ${{ inputs.pipeline_name }} failed"
-        attachments:
-          - color: "#dc2626"   # 🔴 RED (failure)
-            blocks:
-              - type: header
-                text:
-                  type: plain_text
-                  text: "🚨 Pipeline Failure Alert"
-                  emoji: true
+        payload: |
+          text: "🚨 ${{ inputs.pipeline_name }} failed"
+          attachments:
+            - color: "#dc2626"   # 🔴 RED (failure)
+              blocks:
+                - type: header
+                  text:
+                    type: plain_text
+                    text: "🚨 Pipeline Failure Alert"
+                    emoji: true
 
-              - type: section
-                fields:
-                  - type: mrkdwn
-                    text: "*Pipeline:*\n${{ inputs.pipeline_name }}"
-                  - type: mrkdwn
-                    text: "*Repository:*\n${{ inputs.repository_name }}"
-                  - type: mrkdwn
-                    text: "*Status:*\nFAILED"
-                  - type: mrkdwn
-                    text: "*Author:*\n${{ inputs.author }}"
+                - type: section
+                  fields:
+                    - type: mrkdwn
+                      text: "*Pipeline:*\n${{ inputs.pipeline_name }}"
+                    - type: mrkdwn
+                      text: "*Repository:*\n${{ inputs.repository_name }}"
+                    - type: mrkdwn
+                      text: "*Status:*\nFAILED"
+                    - type: mrkdwn
+                      text: "*Author:*\n${{ inputs.author }}"
 
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: "*Reason:*\n${{ inputs.failure_reason }}"
+                - type: section
+                  text:
+                    type: mrkdwn
+                    text: "*Reason:*\n${{ inputs.failure_reason }}"
 
-              - type: actions
-                elements:
-                  - type: button
-                    text:
-                      type: plain_text
-                      text: "View Workflow Run"
-                      emoji: true
-                    url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    style: danger
+                - type: actions
+                  elements:
+                    - type: button
+                      text:
+                        type: plain_text
+                        text: "View Workflow Run"
+                        emoji: true
+                      url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      style: danger
