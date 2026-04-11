@@ -32,7 +32,7 @@ runs:
         smtp-secure: false
         username: ${{ inputs.smtp_username }}
         password: ${{ inputs.smtp_password }}
-        from-email: ${{ inputs.mail_from }}
+        from-email: "Opslora CI-Alerts <${{ inputs.mail_from }}>"
         to-email: ${{ inputs.mail_to }}
         subject: "${{ inputs.pipeline_name }} FAILED"
         html: |
