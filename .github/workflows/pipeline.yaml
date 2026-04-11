@@ -37,6 +37,7 @@ jobs:
   if: ${{ needs.dependency-scan.snyk_status == 'failure' }}
   with:
     snyk_status: ${{ needs.dependency-scan.snyk_status }}
+  secrets: inherit
 
 
   image-build-scan:
