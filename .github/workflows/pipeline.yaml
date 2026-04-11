@@ -54,7 +54,7 @@ jobs:
     name: Snyk Scan
     needs:
       - sonar-scan
-    # if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' }}
+    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' }}
     uses: ./.github/workflows/snyk-scan.yaml
     secrets: inherit
 
