@@ -25,58 +25,42 @@ jobs:
     secrets: inherit
 
   notify:
-    needs:
-      - sonar-scan
-      - dependency-scan
-    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  needs:
+    - sonar-scan
+    - dependency-scan
+  if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Select notification payload
-        id: choose
-        shell: bash
-        run: |
-          if [ "${{ needs.sonar-scan.outputs.quality_gate_status }}" = "FAILED" ]; then
-            echo "title=${{ needs.sonar-scan.outputs.notify_title }}" >> "$GITHUB_OUTPUT"
-            echo "summary=${{ needs.sonar-scan.outputs.notify_summary }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ needs.dependency-scan.outputs.snyk_status }}" = "failure" ]; then
-            echo "title=${{ needs.dependency-scan.outputs.notify_title }}" >> "$GITHUB_OUTPUT"
-            echo "summary=${{ needs.dependency-scan.outputs.notify_summary }}" >> "$GITHUB_OUTPUT"
-          fi
+    - name: Send Sonar notification
+      if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' }}
+      uses: ./.github/actions/send-notification
+      with:
+        pipeline_name: ${{ github.workflow }}
+        repository_name: ${{ github.repository }}
+        failure_reason: "SonarQube Quality Gate Failed"
+        author: ${{ github.event.head_commit.author.name || github.actor }}
+        smtp_username: ${{ secrets.SMTP_USERNAME }}
+        smtp_password: ${{ secrets.SMTP_PASSWORD }}
+        mail_from: ${{ secrets.MAIL_FROM }}
+        mail_to: ${{ secrets.MAIL_TO }}
+        slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
 
-      - name: Send Sonar notification
-        if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' }}
-        uses: ./.github/actions/send-notification
-        with:
-          title: ${{ needs.sonar-scan.outputs.notify_title }}
-          summary: ${{ needs.sonar-scan.outputs.notify_summary }}
-          pipeline_name: ${{ github.workflow }}
-          repository_name: ${{ github.repository }}
-          failure_reason: "SonarQube Quality Gate Failed"
-          author: ${{ github.event.head_commit.author.name || github.actor }}
-          smtp_username: ${{ secrets.SMTP_USERNAME }}
-          smtp_password: ${{ secrets.SMTP_PASSWORD }}
-          mail_from: ${{ secrets.MAIL_FROM }}
-          mail_to: ${{ secrets.MAIL_TO }}
-          slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-
-      - name: Send Snyk notification
-        if: ${{ needs.dependency-scan.outputs.snyk_status == 'failure' }}
-        uses: ./.github/actions/send-notification
-        with:
-          title: ${{ needs.dependency-scan.outputs.notify_title }}
-          summary: ${{ needs.dependency-scan.outputs.notify_summary }}
-          pipeline_name: ${{ github.workflow }}
-          repository_name: ${{ github.repository }}
-          failure_reason: "Snyk Dependency Scan Failed"
-          author: ${{ github.event.head_commit.author.name || github.actor }}
-          smtp_username: ${{ secrets.SMTP_USERNAME }}
-          smtp_password: ${{ secrets.SMTP_PASSWORD }}
-          mail_from: ${{ secrets.MAIL_FROM }}
-          mail_to: ${{ secrets.MAIL_TO }}
-          slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+    - name: Send Snyk notification
+      if: ${{ needs.dependency-scan.outputs.snyk_status == 'failure' }}
+      uses: ./.github/actions/send-notification
+      with:
+        pipeline_name: ${{ github.workflow }}
+        repository_name: ${{ github.repository }}
+        failure_reason: "Snyk Dependency Scan Failed"
+        author: ${{ github.event.head_commit.author.name || github.actor }}
+        smtp_username: ${{ secrets.SMTP_USERNAME }}
+        smtp_password: ${{ secrets.SMTP_PASSWORD }}
+        mail_from: ${{ secrets.MAIL_FROM }}
+        mail_to: ${{ secrets.MAIL_TO }}
+        slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
 
   # image-build-scan:
   #   needs:
