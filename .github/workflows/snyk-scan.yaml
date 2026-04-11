@@ -27,4 +27,4 @@ jobs:
         continue-on-error: true
 
       - name: Show Snyk outcome
-        run: echo "Snyk outcome: ${{ steps.snyk-check.outcome }}"
+        run: echo "Snyk outcome- ${{ steps.snyk-check.outcome }}"
