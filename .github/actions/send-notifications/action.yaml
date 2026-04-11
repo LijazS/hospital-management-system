@@ -1,0 +1,67 @@
+name: Send Notification
+description: Send email and Slack notification
+
+inputs:
+  title:
+    description: Notification title
+    required: true
+  summary:
+    description: Notification summary
+    required: true
+  smtp_username:
+    description: SMTP username
+    required: true
+  smtp_password:
+    description: SMTP password
+    required: true
+  mail_from:
+    description: Sender email
+    required: true
+  mail_to:
+    description: Receiver email
+    required: true
+  slack_webhook:
+    description: Slack webhook URL
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Send email
+      uses: hilarion5/send-mail@v1
+      with:
+        smtp-server: smtp.hostinger.com
+        smtp-port: 587
+        smtp-secure: false
+        username: ${{ inputs.smtp_username }}
+        password: ${{ inputs.smtp_password }}
+        from-email: ${{ inputs.mail_from }}
+        to-email: ${{ inputs.mail_to }}
+        subject: ${{ inputs.title }}
+        html: |
+          <h3>${{ inputs.title }}</h3>
+          <p>${{ inputs.summary }}</p>
+          <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+            View workflow run
+          </a>
+
+    - name: Post to Slack
+      uses: slackapi/slack-github-action@v3.0.1
+      with:
+        webhook: ${{ inputs.slack_webhook }}
+        webhook-type: incoming-webhook
+        payload: |
+          text: "${{ inputs.title }}"
+          blocks:
+            - type: section
+              text:
+                type: mrkdwn
+                text: "*${{ inputs.title }}*"
+            - type: section
+              text:
+                type: mrkdwn
+                text: "${{ inputs.summary }}"
+            - type: section
+              text:
+                type: mrkdwn
+                text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"

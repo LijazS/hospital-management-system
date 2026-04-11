@@ -6,12 +6,24 @@ on:
       quality_gate_status:
         description: "SonarQube quality gate result"
         value: ${{ jobs.code-quality.outputs.quality_gate_status }}
+      notify_tool:
+        description: "Tool name for notification"
+        value: ${{ jobs.code-quality.outputs.notify_tool }}
+      notify_title:
+        description: "Notification title"
+        value: ${{ jobs.code-quality.outputs.notify_title }}
+      notify_summary:
+        description: "Notification summary"
+        value: ${{ jobs.code-quality.outputs.notify_summary }}
 
 jobs:
   code-quality:
     runs-on: ubuntu-latest
     outputs:
-      quality_gate_status: ${{ steps.qg.outputs.quality-gate-status }}
+      quality_gate_status: ${{ steps.set_outputs.outputs.quality_gate_status }}
+      notify_tool: ${{ steps.set_outputs.outputs.notify_tool }}
+      notify_title: ${{ steps.set_outputs.outputs.notify_title }}
+      notify_summary: ${{ steps.set_outputs.outputs.notify_summary }}
 
     steps:
       - name: Checkout code
@@ -36,4 +48,17 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         continue-on-error: true
 
-      
+      - name: Set normalized outputs
+        id: set_outputs
+        shell: bash
+        run: |
+          echo "quality_gate_status=${{ steps.qg.outputs.quality-gate-status }}" >> "$GITHUB_OUTPUT"
+          echo "notify_tool=sonar" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ steps.qg.outputs.quality-gate-status }}" = "FAILED" ]; then
+            echo "notify_title=SonarQube Quality Gate Failed" >> "$GITHUB_OUTPUT"
+            echo "notify_summary=Code quality gate failed. Review SonarQube issues before continuing." >> "$GITHUB_OUTPUT"
+          else
+            echo "notify_title=SonarQube Passed" >> "$GITHUB_OUTPUT"
+            echo "notify_summary=Quality gate passed successfully." >> "$GITHUB_OUTPUT"
+          fi

@@ -6,7 +6,7 @@ on:
       - deploying
 
 concurrency:
-  group: hospital-ci-${{ github.ref }}
+  group: hospital-ci-${{ github.repository }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -17,27 +17,42 @@ jobs:
     uses: ./.github/workflows/sonar-scan.yaml
     secrets: inherit
 
-  sonar-scan-notification:
+  dependency-scan:
     needs:
       - sonar-scan
-    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' }}
-    uses: ./.github/workflows/code-quality-notification.yaml
-    with:
-      quality_gate_status: ${{ needs.sonar-scan.outputs.quality_gate_status }}
-    secrets: inherit
-
-  dependency-scan:
+    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'PASSED' }}
     uses: ./.github/workflows/snyk-scan.yaml
     secrets: inherit
 
-  dependency-notification:
+  notify:
     needs:
+      - sonar-scan
       - dependency-scan
-    if: ${{ needs.dependency-scan.outputs.snyk_status == 'failure' }}
-    uses: ./.github/workflows/snyk-notification.yaml
-    with:
-      snyk_status: ${{ needs.dependency-scan.outputs.snyk_status }}
-    secrets: inherit
+    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Select notification payload
+        id: choose
+        shell: bash
+        run: |
+          if [ "${{ needs.sonar-scan.outputs.quality_gate_status }}" = "FAILED" ]; then
+            echo "title=${{ needs.sonar-scan.outputs.notify_title }}" >> "$GITHUB_OUTPUT"
+            echo "summary=${{ needs.sonar-scan.outputs.notify_summary }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.dependency-scan.outputs.snyk_status }}" = "failure" ]; then
+            echo "title=${{ needs.dependency-scan.outputs.notify_title }}" >> "$GITHUB_OUTPUT"
+            echo "summary=${{ needs.dependency-scan.outputs.notify_summary }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send notification
+        uses: ./.github/actions/send-notification
+        with:
+          title: ${{ steps.choose.outputs.title }}
+          summary: ${{ steps.choose.outputs.summary }}
+          smtp_username: ${{ secrets.SMTP_USERNAME }}
+          smtp_password: ${{ secrets.SMTP_PASSWORD }}
+          mail_from: ${{ secrets.MAIL_FROM }}
+          mail_to: ${{ secrets.MAIL_TO }}
+          slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
 
   image-build-scan:
     needs:
