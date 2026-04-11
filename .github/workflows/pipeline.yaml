@@ -90,7 +90,7 @@ jobs:
           smtp_username: ${{ secrets.SMTP_USERNAME }}
           smtp_password: ${{ secrets.SMTP_PASSWORD }}
           mail_from: ${{ secrets.MAIL_FROM }}
-          mail_to: ${{ secrets.MAIL_TO }}
+          mail_to: ${{ needs.get-email.outputs.email }}
           slack_webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
 
   # image-build-scan:
