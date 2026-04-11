@@ -21,9 +21,9 @@ inputs:
   slack_webhook:
     required: true
   sonar_host_url:
-    required: false
+    required: true
   sonar_project_key:
-    required: false
+    required: true
 
 runs:
   using: composite
