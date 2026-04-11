@@ -34,7 +34,7 @@ runs:
         password: ${{ inputs.smtp_password }}
         from-email: ${{ inputs.mail_from }}
         to-email: ${{ inputs.mail_to }}
-        subject: "${{ inputs.pipeline_name }} - ${{ inputs.repository_name }} FAILED"
+        subject: "${{ inputs.pipeline_name }} FAILED"
         html: |
           <h3>${{ inputs.pipeline_name }} - ${{ inputs.repository_name }}</h3>
           <p><strong>REASON:</strong> ${{ inputs.failure_reason }}</p>
@@ -51,7 +51,7 @@ runs:
         webhook: ${{ inputs.slack_webhook }}
         webhook-type: incoming-webhook
         payload: |
-          text: "${{ inputs.pipeline_name }} - ${{ inputs.repository_name }} FAILED"
+          text: "${{ inputs.pipeline_name }} FAILED"
           blocks:
             - type: section
               text:
