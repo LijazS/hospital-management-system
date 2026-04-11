@@ -23,19 +23,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get latest commit author
         id: author
         shell: bash
         run: |
+          echo "GitHub SHA: ${{ github.sha }}"
+
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             SHA="${{ github.event.pull_request.head.sha }}"
           else
             SHA="${{ github.sha }}"
           fi
 
+          echo "Resolved SHA: $SHA"
+
+          # Check commit exists
+          git log -1 "$SHA" || echo "Commit not found!"
+
           EMAIL=$(git show -s --format='%ae' "$SHA")
           NAME=$(git show -s --format='%an' "$SHA")
+
+          echo "Extracted EMAIL: $EMAIL"
+          echo "Extracted NAME: $NAME"
 
           echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
