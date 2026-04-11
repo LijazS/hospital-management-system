@@ -160,35 +160,35 @@ app.listen(PORT, () => {
   console.log(`🏥 Hospital Management System running on http://localhost:${PORT}`);
 });
 
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
-try {
-  something();
-} catch (e) {
-}
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
+// try {
+//   something();
+// } catch (e) {
+// }
