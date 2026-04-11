@@ -9,9 +9,9 @@ on:
 
 jobs:
   snyk-scan:
+    runs-on: ubuntu-latest
     outputs:
       snyk_status: ${{ steps.snyk-check.outcome }}
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -27,8 +27,4 @@ jobs:
         continue-on-error: true
 
       - name: Show Snyk outcome
-        run: echo "Snyk outcome- ${{ steps.snyk-check.outcome }}"
-
-      - name: Fail if Snyk found blocking vulnerabilities
-        if: steps.snyk-check.outcome == 'failure'
-        run: exit 0
+        run: echo "Snyk outcome: ${{ steps.snyk-check.outcome }}"

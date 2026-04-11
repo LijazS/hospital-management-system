@@ -12,89 +12,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Generate SonarQube issues JSON
-      if: ${{ inputs.snyk_status == 'failure' }}
-      run: |
-        set -euo pipefail
-        mkdir -p reports
-        curl -fsS \
-          -H "Authorization: Bearer ${SONAR_TOKEN}" \
-          "${SONAR_HOST_URL}/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&resolved=false&ps=500" \
-          -o reports/sonarqube-issues.json
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      - name: Create Snyk HTML report
+        if: ${{ inputs.snyk_status == 'failure' }}
+        run: |
+          mkdir -p reports
+          cat > reports/snyk-report.html <<'EOF'
+          <html>
+            <head>
+              <title>Snyk Scan Report</title>
+            </head>
+            <body>
+              <h2>Snyk Security Scan Failed</h2>
+              <p>The Snyk dependency scan reported blocking vulnerabilities or policy issues.</p>
+              <p><strong>Repository:</strong> ${{ github.repository }}</p>
+              <p><strong>Branch:</strong> ${{ github.ref_name }}</p>
+              <p><strong>Triggered by:</strong> ${{ github.actor }}</p>
+              <p>
+                <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+                  View workflow run
+                </a>
+              </p>
+            </body>
+          </html>
+          EOF
 
-    - name: Generate readable HTML report
-      if: ${{ inputs.snyk_status == 'failure' }}
-      run: |
-        python3 - <<'PY'
-        import json, html
+      - name: Upload Snyk report artifact
+        if: ${{ inputs.snyk_status == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-report
+          path: reports/snyk-report.html
 
-        with open("reports/sonarqube-issues.json") as f:
-            data = json.load(f)
+      - name: Send email with report
+        if: ${{ inputs.snyk_status == 'failure' }}
+        uses: hilarion5/send-mail@v1
+        with:
+          smtp-server: smtp.hostinger.com
+          smtp-port: 587
+          smtp-secure: false
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          from-email: ${{ secrets.MAIL_FROM }}
+          to-email: ${{ secrets.MAIL_TO }}
+          subject: "Snyk Scan Report"
+          html: |
+            <h3>Snyk Scan Report</h3>
+            <p>The Snyk dependency scan failed.</p>
+            <p>Download the report from the workflow:</p>
+            <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+              View Report
+            </a>
 
-        issues = data.get("issues", [])
-
-        with open("reports/sonarqube-report.html", "w") as out:
-            out.write("<h2>SonarQube Issues Report</h2>")
-            out.write(f"<p>Total Issues: {len(issues)}</p>")
-            out.write("<ul>")
-            for issue in issues:
-                out.write("<li>")
-                out.write(f"<b>{html.escape(str(issue.get('severity', '')))}</b>: {html.escape(str(issue.get('message', '')))}<br>")
-                out.write(f"File: {html.escape(str(issue.get('component', '')))}<br>")
-                out.write(f"Line: {html.escape(str(issue.get('line', '')))}<br>")
-                out.write(f"Rule: {html.escape(str(issue.get('rule', '')))}")
-                out.write("</li><br>")
-            out.write("</ul>")
-        PY
-
-    - name: Upload SonarQube report artifact
-      if: ${{ inputs.snyk_status == 'failure' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: sonarqube-report
-        path: reports/sonarqube-report.html
-
-    - name: Send email with report
-      if: ${{ inputs.snyk_status == 'failure' }}
-      uses: hilarion5/send-mail@v1
-      with:
-        smtp-server: smtp.hostinger.com
-        smtp-port: 587
-        smtp-secure: false
-        username: ${{ secrets.SMTP_USERNAME }}
-        password: ${{ secrets.SMTP_PASSWORD }}
-        from-email: ${{ secrets.MAIL_FROM }}
-        to-email: ${{ secrets.MAIL_TO }}
-        subject: "SonarQube Report"
-        html: |
-          <h3>SonarQube Report</h3>
-          <p>Download the report from the workflow:</p>
-          <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-            View Report
-          </a>
-
-    - name: Post to Slack
-      if: ${{ inputs.snyk_status == 'failure' }}
-      uses: slackapi/slack-github-action@v3.0.1
-      with:
-        webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-        webhook-type: incoming-webhook
-        payload: |
-          text: "Snyk report is ready"
-          blocks:
-            - type: section
-              text:
-                type: mrkdwn
-                text: "*Triggered by:* `${{ github.actor }}`"
-            - type: section
-              text:
-                type: mrkdwn
-                text: "*SNYK ALERT:*"
-            - type: section
-              text:
-                type: mrkdwn
-                text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Report>"
+      - name: Post to Slack
+        if: ${{ inputs.snyk_status == 'failure' }}
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          webhook: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: "Snyk report is ready"
+            blocks:
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "*Triggered by:* `${{ github.actor }}`"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "*SNYK ALERT:* Dependency scan failed."
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Report>"
