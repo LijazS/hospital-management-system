@@ -28,7 +28,7 @@ jobs:
     needs:
       - sonar-scan
       - dependency-scan
-    if: ${{ needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
+    if: ${{ always() && needs.sonar-scan.outputs.quality_gate_status == 'FAILED' || needs.dependency-scan.outputs.snyk_status == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
